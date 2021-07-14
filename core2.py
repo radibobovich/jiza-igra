@@ -1,17 +1,19 @@
-import tkinter
+import tkinter # import some gui shit
 from tkinter import *
 from tkinter import messagebox
 from tkinter.ttk import Progressbar
 import tkinter.ttk as ttk
-from PIL import ImageTk, Image
+from PIL import ImageTk, Image # import some image openers shit
 import datetime
 from datetime import timedelta
 import random
 from events import *
+
 random.seed(None)
 rand = random.Random()
+
+# a window
 root = Tk()
-# окно
 root.iconbitmap('icons/icon.ico')
 root['bg'] = 'snow'
 root.title('Жиза-игра')
@@ -20,14 +22,14 @@ root.geometry('640x480')
 root.resizable(width=False, height=False)
 
 
-health = 100
+health = 100 # in fact, no matter what values there are because start() func will reset it
 food = 100
 rest = 100
 balance = 2500
 date = datetime.datetime(2020, 5, 17)
 balanceVar = StringVar()
 balanceVar.set(balance)
-workid = ''
+workid = '' # used to find out what job the player has
 
 
 class Work: # class of work types to carry individual salary etc.
@@ -46,24 +48,16 @@ class Work: # class of work types to carry individual salary etc.
             #event = events.events(self.randomevents)
             if random.random() > 0.8:
                 event = eval(self.randomevents[random.randrange(0, len(self.randomevents))])() # event is a variable that contains info about random event. It's a dictionary
-            textprint(event['output'])
-            balance += event['deltabalance']
+                textprint(event['output'])
+                balance += event['deltabalance'] # there should be all parameters that can be changed
             textprint('Вы поработали.')
             food += self.deltafood
             rest += self.deltarest
             balance += self.deltabalance
             refresh()
 
-# a lot of random events
-# mcdonalds
-# def uronil():
-#     textprint('аааа уронили уронили')
-# def podnal():
-#      textprint('ааа подняли')
-# def obosralsya():
-#     textprint('пахнет говном')
-# def zasmeyalsya():
-#      textprint('ржомба лмао')
+# list of available jobs
+
 
 mcdonalds = Work(workType='Макдональдс', id='mcdonalds', deltabalance=600, deltafood=-10, deltarest=-50, randomevents=['uronil', 'podnal'])
 dns = Work(workType='DNS', id='dns', deltabalance=500, deltafood=-20, deltarest=-40, randomevents=['obosralsya', 'zasmeyalsya'])
@@ -75,14 +69,14 @@ worksmas = [mcdonalds, dns, courier, cladman]
 # functions
 
 
-def resetbtns():
+def resetbtns(): # reset buttons when player does something to prevent mixing actions
     Btn1.configure(text='-', command=NONE)
     Btn2.configure(text='-', command=NONE)
     Btn3.configure(text='-', command=NONE)
     Btn4.configure(text='-', command=NONE)
 
 
-def setwork():
+def setwork(): # runs when player selected a job and pressed OK
     global workid
     if listBox.curselection() == (): # exception if user didn't selected work
         messagebox.showinfo(title='Подсказка', message='Выберите работу из списка справа')
@@ -94,7 +88,7 @@ def setwork():
         Btn1.configure(text=eval(workid).workType, command=eval(workid).dowork)
         Btn2.configure(text='Сменить работу', command=changework)
 
-def changework():
+def changework(): # runs if player has no work and pressed the work button
     textprint('Выберите работу из списка. ')
     for i in range(len(worksmas)): # fills listBox with works
         listBox.insert(i, worksmas[i].workType)
@@ -102,11 +96,11 @@ def changework():
 
 
 def dowork():
-    global balance, food, rest
+    # global balance, food, rest
     eval(workid).dowork()
 
 
-def work():
+def work(): # runs when the work button is pressed
     resetbtns()
     listBox.delete(0, 'end')
     if workid == '':
@@ -134,6 +128,8 @@ class Food:
             balance += self.deltabalance
             textprint('Вы поели. Сытость: ' + str(food))
             refresh()
+
+# list of available food
 
 
 sandwich = Food('Бутерброд (30) (+10)', 'sandwich', -30, 10)
@@ -358,7 +354,8 @@ def checkstats(deltafood=0, deltarest=0, deltabalance=0, deltahealth=0, alert=Tr
     if health + deltahealth < 0:
         return 'death'
     else:
-        health += deltahealth
+        if deltahealth < 0:
+            health += deltahealth
     if food + deltafood < 0 and alert:
         textprint('Вы слишком голодны для этого действия.')
         textprint('Требуется сытости: '+ str(abs(deltafood)) + ', ваша сытость: ' + str(food))
@@ -370,7 +367,7 @@ def checkstats(deltafood=0, deltarest=0, deltabalance=0, deltahealth=0, alert=Tr
         textprint('Требуется денег: ' + str(abs(deltabalance)) + ', ваш баланс: ' + str(balance))
     if (food + deltafood < 0) or (rest + deltarest < 0) or (balance + deltabalance < 0):
         return False
-    else:
+    else: # govnocode that prevents stats from overflow when increasing it
         if deltahealth > 0:
             health += deltahealth
             if health > maxhealth:
